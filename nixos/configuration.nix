@@ -10,12 +10,40 @@
     ./hardware-configuration.nix
   ];
 
+  # Enable full GPU hardware video acceleration.
+  # This offloads video decoding from the CPU to the integrated graphics.
+  hardware.graphics = {
+    enable = true;
+    extraPackages = with pkgs; [
+      intel-media-driver # Modern driver for media playback (QuickSync / VA-API)
+      intel-vaapi-driver # Legacy fallback driver required by some web browsers
+    ];
+  };
+
+  # Force applications to use the modern Intel driver for video decoding.
+  environment.sessionVariables = {
+    LIBVA_DRIVER_NAME = "iHD";
+  };
+
   boot = {
+
     # Bootloader.
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
 
-    # Use latest kernel.
+    # Fix 13th Gen Intel sleep/wake and idle power hangs.
+    # - s2idle: Prevents deep sleep states that the CPU cannot wake up from.
+    # - max_cstate=4: Limits power-saving states to stop random wake freezes.
+    kernelParams = [
+      "mem_sleep_default=s2idle"
+      "intel_idle.max_cstate=4"
+    ];
+    # Force Intel graphics driver to load at the very beginning of boot.
+    # This prevents the display manager (login screen) from timing out.
+    initrd.kernelModules = [ "i915" ];
+
+    # Use the latest Linux kernel.
+    # Essential for 13th Gen hardware stability and power management updates.
     kernelPackages = pkgs.linuxPackages_latest;
   };
 
@@ -133,6 +161,11 @@
   # List packages installed in system profile. To search, run:
   # $ nix search wget
   environment.systemPackages = with pkgs; [
+
+    # -- apps
+    kdePackages.ktorrent
+
+    # ---
     stow
     neovim
     kitty
