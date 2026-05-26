@@ -20,6 +20,11 @@
     ];
   };
 
+  hardware.bluetooth = {
+    enable = true;
+    powerOnBoot = true; # Automatically turn on Bluetooth when the system boots
+  };
+
   # Force applications to use the modern Intel driver for video decoding.
   environment.sessionVariables = {
     LIBVA_DRIVER_NAME = "iHD";
