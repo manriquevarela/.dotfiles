@@ -36,16 +36,42 @@
     loader.systemd-boot.enable = true;
     loader.efi.canTouchEfiVariables = true;
 
-    # Fix 13th Gen Intel sleep/wake and idle power hangs.
-    # - s2idle: Prevents deep sleep states that the CPU cannot wake up from.
-    # - max_cstate=4: Limits power-saving states to stop random wake freezes.
+    # Kernel parameters for Intel UHD 770 display stability.
+    #
+    # We occasionally experience a "No Signal" condition during boot where
+    # the system appears to start normally but the monitor never receives
+    # video output. These options target Intel display initialization and
+    # monitor handshake issues.
     kernelParams = [
-      "mem_sleep_default=s2idle"
-      "intel_idle.max_cstate=4"
+      # Disable Intel Fastboot display initialization.
+      # Forces the graphics driver to perform a full monitor detection and
+      # modesetting sequence during boot. Can help with intermittent HDMI
+      # signal loss and monitor handshake problems.
+      "i915.fastboot=0"
+
+      # Disable Panel Self Refresh (PSR).
+      # PSR is a power-saving feature that can cause display issues on some
+      # Intel graphics systems. Primarily affects laptops, but is harmless
+      # to disable while troubleshooting display signal problems.
+      "i915.enable_psr=0"
+
+      # Previous sleep-related troubleshooting options:
+      #
+      # Force the system to use s2idle instead of deeper sleep states.
+      # Can help on some 13th Gen Intel systems with suspend/resume issues.
+      # "mem_sleep_default=s2idle"
+      #
+      # Limit CPU power-saving states to improve stability at the cost of
+      # higher idle power consumption.
+      # "intel_idle.max_cstate=4"
     ];
-    # Force Intel graphics driver to load at the very beginning of boot.
-    # This prevents the display manager (login screen) from timing out.
-    initrd.kernelModules = [ "i915" ];
+
+    # Previously tested as a workaround for display initialization issues.
+    # Forces the Intel graphics driver (i915) to load in the initrd stage
+    # before the main system boots. This did not resolve the issue and is
+    # currently disabled to allow the default driver loading sequence.
+    #
+    # initrd.kernelModules = [ "i915" ];
 
     # Use the latest Linux kernel.
     # Essential for 13th Gen hardware stability and power management updates.
@@ -139,6 +165,11 @@
 
   programs = {
 
+    # Enable the Hyprland window manager
+    hyprland = {
+      enable = true;
+    };
+
     # Install firefox.
     firefox.enable = true;
 
@@ -222,6 +253,21 @@
     bat
     eza
     tmux
+
+    zed-editor
+
+    # Hyprland Ecosystem
+    waybar
+    rofi
+    mako
+    hyprpaper
+    hyprlock
+    hypridle
+
+    # System Essentials
+    # polkit_gnome
+    brightnessctl
+    # wl-clipboard # Clipboard manager for Wayland
 
   ];
 
