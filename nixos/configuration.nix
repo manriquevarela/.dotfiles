@@ -268,6 +268,7 @@
     # polkit_gnome
     brightnessctl
     # wl-clipboard # Clipboard manager for Wayland
+    mixxx
 
   ];
 
