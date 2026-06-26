@@ -194,19 +194,12 @@
 
   # Allow unfree packages
   nixpkgs.config = {
-
     allowUnfree = true;
-
-    permittedInsecurePackages = [
-      # citrix_workspace:
-      "libsoup-2.74.3"
-    ];
-
-    problems.handlers = {
-      # citrix_workspace:
-      "citrix-workspace".broken = "ignore";
-    };
   };
+
+  nixpkgs.overlays = [
+    (import ./overlays/citrix.nix)
+  ];
 
   # List packages installed in system profile. To search, run:
   # $ nix search wget
@@ -222,12 +215,7 @@
     google-chrome
     brave
     webex
-    (citrix_workspace.overrideAttrs (oldAttrs: {
-      buildInputs = (oldAttrs.buildInputs or [ ]) ++ [
-        pkgs.libsoup_2_4
-      ];
-    }))
-
+    citrix-workspace
     # --- LazyVim Runtime & Compiler Dependencies ---
     git # Required for partial clones and updates
     curl # Required for completion engines (e.g., blink.cmp)
