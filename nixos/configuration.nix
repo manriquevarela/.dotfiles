@@ -25,9 +25,21 @@
     powerOnBoot = true; # Automatically turn on Bluetooth when the system boots
   };
 
-  # Force applications to use the modern Intel driver for video decoding.
   environment.sessionVariables = {
+
+    # Force applications to use the modern Intel driver for video decoding.
     LIBVA_DRIVER_NAME = "iHD";
+    # Forces Qt apps to look at the current desktop for styling
+
+    # Tells GTK4 and Libadwaita apps to prefer dark mode
+    GTK_THEME = "Adwaita-dark";
+
+    # Tells modern apps using XDG Desktop Portal to use dark mode
+    XDG_CURRENT_DESKTOP = "Hyprland";
+
+    # Tells QT apps to use the qt6ct configuration tool for styling
+    QT_QPA_PLATFORMTHEME = "qt6ct";
+    QT_QPA_PLATFORM = "wayland";
   };
 
   boot = {
@@ -135,6 +147,10 @@
       variant = "";
     };
 
+    # noctalia
+    power-profiles-daemon.enable = true;
+    upower.enable = true;
+
     # Enable CUPS to print documents.
     printing.enable = true;
 
@@ -161,6 +177,29 @@
       kdePackages.kate
       #  thunderbird
     ];
+  };
+
+  # Enable XDG Desktop Portals so apps can read the dark mode preference
+  xdg.portal = {
+    enable = true;
+    extraPortals = [ pkgs.xdg-desktop-portal-gtk ];
+
+    config = {
+      common = {
+        default = [ "gtk" ];
+      };
+      # Force Hyprland to use its own portal
+      hyprland = {
+        default = [
+          "hyprland"
+          "gtk"
+        ];
+      };
+      # Force KDE to use its own portal
+      kde = {
+        default = [ "kde" ];
+      };
+    };
   };
 
   programs = {
@@ -261,23 +300,21 @@
 
     zed-editor
 
-    # Hyprland Ecosystem
-    waybar
-    rofi
-    mako
-    hyprpaper
-    hyprlock
-    hypridle
-
-    # System Essentials
-    # polkit_gnome
-    brightnessctl
-    # wl-clipboard # Clipboard manager for Wayland
     mixxx
 
+    # Install qt6ct so QT apps can scale and style correctly
+    qt6Packages.qt6ct
+
+    ddcutil
   ];
 
   fonts.packages = with pkgs; [
+
+    noto-fonts
+    liberation_ttf
+    dejavu_fonts
+    corefonts
+
     nerd-fonts.jetbrains-mono
   ];
 
