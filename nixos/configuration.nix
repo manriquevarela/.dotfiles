@@ -245,7 +245,14 @@
     };
   };
 
-  security.rtkit.enable = true;
+  security = {
+
+    # Enables Polkit to manage unprivileged user permissions for actions like mounting drives or shutting down via GUI.
+    polkit.enable = true;
+
+    # Enables RealtimeKit (Rtkit) to hand out high scheduling priority to audio services like PipeWire to prevent stuttering.
+    rtkit.enable = true;
+  };
 
   users.users.manrique = {
     isNormalUser = true;
