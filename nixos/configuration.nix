@@ -25,21 +25,100 @@
     powerOnBoot = true; # Automatically turn on Bluetooth when the system boots
   };
 
-  environment.sessionVariables = {
+  environment = {
 
-    # Force applications to use the modern Intel driver for video decoding.
-    LIBVA_DRIVER_NAME = "iHD";
-    # Forces Qt apps to look at the current desktop for styling
+    # 4. Launch Hyprland when logging into TTY1
+    loginShellInit = ''
+      if uwsm check may-start; then
+        exec uwsm start default
+      fi
+    '';
 
-    # Tells GTK4 and Libadwaita apps to prefer dark mode
-    GTK_THEME = "Adwaita-dark";
+    sessionVariables = {
 
-    # Tells modern apps using XDG Desktop Portal to use dark mode
-    XDG_CURRENT_DESKTOP = "Hyprland";
+      # Force applications to use the modern Intel driver for video decoding.
+      LIBVA_DRIVER_NAME = "iHD";
+      # Forces Qt apps to look at the current desktop for styling
 
-    # Tells QT apps to use the qt6ct configuration tool for styling
-    QT_QPA_PLATFORMTHEME = "qt6ct";
-    QT_QPA_PLATFORM = "wayland";
+      # Tells GTK4 and Libadwaita apps to prefer dark mode
+      GTK_THEME = "Adwaita-dark";
+
+      # Tells modern apps using XDG Desktop Portal to use dark mode
+      XDG_CURRENT_DESKTOP = "Hyprland";
+
+      # Tells QT apps to use the qt6ct configuration tool for styling
+      QT_QPA_PLATFORMTHEME = "qt6ct";
+      QT_QPA_PLATFORM = "wayland";
+    };
+
+    # List packages installed in system profile. To search, run:
+    # $ nix search wget
+    systemPackages = with pkgs; [
+
+      # -- apps
+      kdePackages.ktorrent
+      kdePackages.dolphin
+
+      # ---
+      stow
+      neovim
+      kitty
+      google-chrome
+      brave
+      webex
+      citrix-workspace
+      # --- LazyVim Runtime & Compiler Dependencies ---
+      git # Required for partial clones and updates
+      curl # Required for completion engines (e.g., blink.cmp)
+      gcc # C compiler required by nvim-treesitter
+      gnumake # Build utility for nvim-treesitter and other tools
+      unzip # Required for unpacking plugins
+      tree-sitter
+      tree-sitter-grammars.tree-sitter-java
+      tree-sitter-grammars.tree-sitter-nix
+      tree-sitter-grammars.tree-sitter-lua
+      tree-sitter-grammars.tree-sitter-javascript
+      tree-sitter-grammars.tree-sitter-typescript
+      tree-sitter-grammars.tree-sitter-tsx
+      tree-sitter-grammars.tree-sitter-regex
+
+      # --- Recommended CLI Tools & LSPs ---
+      fzf # General fuzzy finding
+      ripgrep # Live grep in telescope
+      fd # Fast file searching
+      lazygit # Git TUI integration
+      nodejs # Many LSPs (tsserver, etc.) rely on Node.js
+      python3 # Python environment for Python-based LSPs/plugins
+      python312Packages.pynvim # Python provider for neovim
+
+      # LSP
+      lua-language-server
+      nil
+      typescript-language-server
+      bash-language-server
+      vscode-langservers-extracted
+
+      # Formatters
+      alejandra # nix
+      statix
+      beautysh
+
+      lazygit
+      fzf
+      zoxide
+      bat
+      eza
+      tmux
+
+      zed-editor
+
+      mixxx
+
+      # Install qt6ct so QT apps can scale and style correctly
+      qt6Packages.qt6ct
+
+      ddcutil
+    ];
   };
 
   boot = {
@@ -137,9 +216,11 @@
     # xserver.enable = true;
 
     # Enable the KDE Plasma Desktop Environment.
-    # displayManager.sddm.enable = true;
-    displayManager.plasma-login-manager.enable = true;
-    desktopManager.plasma6.enable = true;
+    # displayManager.plasma-login-manager.enable = true;
+    # desktopManager.plasma6.enable = true;
+
+    # 3. Enable automatic login on TTY1
+    getty.autologinUser = "manrique"; # Replace with your username
 
     # Configure keymap in X11
     xserver.xkb = {
@@ -196,9 +277,9 @@
         ];
       };
       # Force KDE to use its own portal
-      kde = {
-        default = [ "kde" ];
-      };
+      # kde = {
+      #   default = [ "kde" ];
+      # };
     };
   };
 
@@ -207,6 +288,8 @@
     # Enable the Hyprland window manager
     hyprland = {
       enable = true;
+      xwayland.enable = true;
+      withUWSM = true;
     };
 
     # Install firefox.
@@ -238,74 +321,6 @@
 
   nixpkgs.overlays = [
     (import ./overlays/citrix.nix)
-  ];
-
-  # List packages installed in system profile. To search, run:
-  # $ nix search wget
-  environment.systemPackages = with pkgs; [
-
-    # -- apps
-    kdePackages.ktorrent
-
-    # ---
-    stow
-    neovim
-    kitty
-    google-chrome
-    brave
-    webex
-    citrix-workspace
-    # --- LazyVim Runtime & Compiler Dependencies ---
-    git # Required for partial clones and updates
-    curl # Required for completion engines (e.g., blink.cmp)
-    gcc # C compiler required by nvim-treesitter
-    gnumake # Build utility for nvim-treesitter and other tools
-    unzip # Required for unpacking plugins
-    tree-sitter
-    tree-sitter-grammars.tree-sitter-java
-    tree-sitter-grammars.tree-sitter-nix
-    tree-sitter-grammars.tree-sitter-lua
-    tree-sitter-grammars.tree-sitter-javascript
-    tree-sitter-grammars.tree-sitter-typescript
-    tree-sitter-grammars.tree-sitter-tsx
-    tree-sitter-grammars.tree-sitter-regex
-
-    # --- Recommended CLI Tools & LSPs ---
-    fzf # General fuzzy finding
-    ripgrep # Live grep in telescope
-    fd # Fast file searching
-    lazygit # Git TUI integration
-    nodejs # Many LSPs (tsserver, etc.) rely on Node.js
-    python3 # Python environment for Python-based LSPs/plugins
-    python312Packages.pynvim # Python provider for neovim
-
-    # LSP
-    lua-language-server
-    nil
-    typescript-language-server
-    bash-language-server
-    vscode-langservers-extracted
-
-    # Formatters
-    alejandra # nix
-    statix
-    beautysh
-
-    lazygit
-    fzf
-    zoxide
-    bat
-    eza
-    tmux
-
-    zed-editor
-
-    mixxx
-
-    # Install qt6ct so QT apps can scale and style correctly
-    qt6Packages.qt6ct
-
-    ddcutil
   ];
 
   fonts.packages = with pkgs; [
