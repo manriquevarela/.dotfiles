@@ -10,19 +10,24 @@
     ./hardware-configuration.nix
   ];
 
-  # Enable full GPU hardware video acceleration.
-  # This offloads video decoding from the CPU to the integrated graphics.
-  hardware.graphics = {
-    enable = true;
-    extraPackages = with pkgs; [
-      intel-media-driver # Modern driver for media playback (QuickSync / VA-API)
-      intel-vaapi-driver # Legacy fallback driver required by some web browsers
-    ];
-  };
+  hardware = {
 
-  hardware.bluetooth = {
-    enable = true;
-    powerOnBoot = true; # Automatically turn on Bluetooth when the system boots
+    # Enable full GPU hardware video acceleration.
+    # This offloads video decoding from the CPU to the integrated graphics.
+    graphics = {
+      enable = true;
+      extraPackages = with pkgs; [
+        intel-media-driver # Modern driver for media playback (QuickSync / VA-API)
+        intel-vaapi-driver # Legacy fallback driver required by some web browsers
+      ];
+    };
+
+    bluetooth = {
+      enable = true;
+      powerOnBoot = true; # Automatically turn on Bluetooth when the system boots
+    };
+
+    i2c.enable = true;
   };
 
   environment = {
@@ -118,6 +123,8 @@
       qt6Packages.qt6ct
 
       ddcutil
+
+      pavucontrol
     ];
   };
 
@@ -163,6 +170,8 @@
     # currently disabled to allow the default driver loading sequence.
     #
     # initrd.kernelModules = [ "i915" ];
+
+    kernelModules = [ "i2c-dev" ];
 
     # Use the latest Linux kernel.
     # Essential for 13th Gen hardware stability and power management updates.
@@ -260,6 +269,7 @@
     extraGroups = [
       "networkmanager"
       "wheel"
+      "i2c"
     ];
     packages = with pkgs; [
       kdePackages.kate
